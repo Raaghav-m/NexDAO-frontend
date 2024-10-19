@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck comment
 import React from "react";
 import { ethers } from "ethers";
