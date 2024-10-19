@@ -71,7 +71,7 @@ const Navbar = () => {
                     display={{ base: "none", md: "flex" }}
                     marginRight={4}
                   >
-                    <Link href="/register">
+                    <Link href="/Register">
                       <Button w="full" variant="ghost">
                         Register
                       </Button>
@@ -83,7 +83,7 @@ const Navbar = () => {
                     display={{ base: "none", md: "flex" }}
                     marginRight={4}
                   >
-                    <Link href="/create-dao">
+                    <Link href="/Create-dao">
                       <Button w="full" variant="ghost">
                         Create DAO
                       </Button>
@@ -134,21 +134,21 @@ const Navbar = () => {
             {account.isConnected && (
               <>
                 <Stack as={"nav"} spacing={4}>
-                  <Link href="/register">
+                  <Link href="/Register">
                     <Button w="full" variant="ghost">
                       Register
                     </Button>
                   </Link>
                 </Stack>
                 <Stack as={"nav"} spacing={4}>
-                  <Link href="/create-dao">
+                  <Link href="/Create-dao">
                     <Button w="full" variant="ghost">
                       Create DAO
                     </Button>
                   </Link>
                 </Stack>
                 <Stack as={"nav"} spacing={4}>
-                  <Link href="/explore">
+                  <Link href="/Explore">
                     <Button w="full" variant="ghost">
                       Explore
                     </Button>
@@ -156,7 +156,7 @@ const Navbar = () => {
                 </Stack>
 
                 <Stack as={"nav"} spacing={4}>
-                  <Link href="/profile">
+                  <Link href="/Profile">
                     <Button w="full" variant="ghost">
                       Profile
                     </Button>

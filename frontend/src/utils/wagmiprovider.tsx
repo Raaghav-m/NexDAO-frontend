@@ -23,14 +23,22 @@ import {
 import "@rainbow-me/rainbowkit/styles.css";
 import { configureChains, createConfig, WagmiProvider, http } from "wagmi";
 
-import { polygonZkEvmCardona } from "wagmi/chains";
+import {
+  polygonZkEvmCardona,
+  skaleCalypsoTestnet,
+  sepolia,
+  flowTestnet,
+} from "wagmi/chains";
 
 const config = getDefaultConfig({
   appName: "ETHSF",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-  chains: [polygonZkEvmCardona],
+  chains: [polygonZkEvmCardona, skaleCalypsoTestnet, sepolia, flowTestnet],
   transports: {
-    [polygonZkEvmCardona.id]: http(),
+    [(polygonZkEvmCardona.id,
+    skaleCalypsoTestnet.id,
+    sepolia.id,
+    flowTestnet.id)]: http(),
   },
 });
 const queryClient = new QueryClient();
