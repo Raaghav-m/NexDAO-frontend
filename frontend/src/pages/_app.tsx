@@ -5,6 +5,9 @@ import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import WagmiProvider from "../utils/wagmiprovider";
 import dynamic from "next/dynamic";
 import Head from "next/head";
+const Navbar = dynamic(() => import("@/components/Navbar/Navbar"), {
+  ssr: false,
+});
 
 const colors = {
   brand: {
@@ -36,6 +39,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <WagmiProvider>
         <ChakraProvider theme={theme}>
+          <Navbar />
           <div
             style={{
               display: "flex",
