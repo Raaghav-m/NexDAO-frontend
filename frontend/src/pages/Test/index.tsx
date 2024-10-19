@@ -24,7 +24,6 @@ const index = () => {
 
   const handleSubmit = async (e) => {
     if (account.isConnected) {
-      console.log("account connected");
       console.log(`chainId is: ${chainId}`);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
