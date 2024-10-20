@@ -53,13 +53,13 @@ export default function Footer() {
         align={{ base: "center", md: "center" }}
       >
         <b>
-          <Text>Made with 💙 by Team Localhost</Text>
+          <Text>Made with 💙 by Soham Kayal @ETHSF</Text>
         </b>
 
         <Stack direction={"row"} spacing={6}>
           <SocialButton label={"GitHub"}>
             <a
-              href="https://github.com/MukulKolpe/HackOnBlocks"
+              href="https://github.com/Sohamkayal4103/ETHSF"
               target="_blank"
               rel="noreferrer"
             >
