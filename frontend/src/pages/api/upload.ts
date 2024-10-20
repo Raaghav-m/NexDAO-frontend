@@ -43,6 +43,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   //   console.error("Error during file upload:", err);
   //   return res.status(500).json({ error: "Error during file upload" });
   // });
+
+  
 };
 
 export default handler;
