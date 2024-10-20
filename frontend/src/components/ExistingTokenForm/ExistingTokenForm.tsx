@@ -2,6 +2,7 @@
 import { useState, useRef, useContext, useEffect } from "react";
 import { ethers } from "ethers";
 import userSideabi from "../../utils/abis/usersideabi.json";
+import usersideabi from "../../utils/abis/usersideabi.json";
 import {
   Progress,
   Box,
@@ -238,7 +239,7 @@ const Form3 = ({ getTokenAddress }) => {
       //sepolia === 11155111
       if (chainId === 545) {
         provider = new ethers.providers.JsonRpcProvider(
-          process.env.NEXT_PUBLIC_RPC_URL
+          process.env.NEXT_PUBLIC_RPC_URL_FLOW
         );
       } else if (chainId === 2442) {
         provider = new ethers.providers.JsonRpcProvider(

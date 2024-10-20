@@ -275,7 +275,7 @@ export default function NewTokenForm() {
       if (chainId === 545) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
-          usersideabi,
+          userSideabi,
           signer
         );
         createTokenContract = new ethers.Contract(
@@ -286,7 +286,7 @@ export default function NewTokenForm() {
       } else if (chainId === 2442) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_CARDONA_ADDRESS,
-          usersideabi,
+          userSideabi,
           signer
         );
         createTokenContract = new ethers.Contract(
@@ -378,19 +378,19 @@ export default function NewTokenForm() {
       if (chainId === 545) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
-          usersideabi,
+          userSideabi,
           signer
         );
       } else if (chainId === 2442) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_CARDONA_ADDRESS,
-          usersideabi,
+          userSideabi,
           signer
         );
       } else if (chainId === 974399131) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SKALE_ADDRESS,
-          usersideabi,
+          userSideabi,
           signer
         );
       } else if (chainId === 11155111) {
@@ -401,16 +401,29 @@ export default function NewTokenForm() {
         );
       }
       const accounts = await provider.listAccounts();
-      const tx = await userSideContract.createDao(
-        name,
-        desc,
-        threshholdToken,
-        proposalToken,
-        tokenAddress,
-        daovisibility,
-        accounts[0],
-        "123"
-      );
+      let tx;
+      if (account.chainId === 11155111) {
+        tx = await userSideContract.createDao(
+          name,
+          desc,
+          threshholdToken,
+          proposalToken,
+          tokenAddress,
+          daovisibility,
+          accounts[0],
+          "123"
+        );
+      } else {
+        tx = await userSideContract.createDao(
+          name,
+          desc,
+          threshholdToken,
+          proposalToken,
+          tokenAddress,
+          daovisibility,
+          accounts[0]
+        );
+      }
 
       console.log(tx);
 
