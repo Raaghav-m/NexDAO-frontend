@@ -793,8 +793,16 @@ const DaoPage = () => {
           _proposalId
         );
         const totalArray = await userSideInstance.getAllVoters(_proposalId);
+
+        console.log(`yes array length: ${Number(yesArray.length)}`);
+        console.log(`noArray length: ${Number(noArray.length)}`);
+        console.log(`abstainArray length: ${Number(abstainArray.length)}`);
         const yesPercentage =
           (yesArray.length /
+            (yesArray.length + noArray.length + abstainArray.length)) *
+          100;
+        const noPercentage =
+          (noArray.length /
             (yesArray.length + noArray.length + abstainArray.length)) *
           100;
         console.log(yesPercentage);
@@ -805,7 +813,8 @@ const DaoPage = () => {
           proposalForVote
         );
         const winnningThresold = Number(propInfo.passingThreshold);
-        if (yesPercentage >= winnningThresold) {
+        if (yesPercentage >= winnningThresold && yesPercentage > noPercentage) {
+          console.log(`${yesPercentage} >= ${winnningThresold}`);
           setFinalVerdict("Proposal has Passed!");
         } else {
           setFinalVerdict("Proposal has been reverted");
