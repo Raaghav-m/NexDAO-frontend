@@ -145,7 +145,7 @@ const Explore = () => {
         }
 
         setDaos(newDaos);
-
+        console.log(newDaos);
         const totalUsersDAO = await userSideInstance.getAllDaoMembers(
           newDaos[0].daoInfo.daoId
         );
@@ -208,7 +208,7 @@ const Explore = () => {
             daos
               .filter((dao) => dao.daoInfo.isPrivate === false)
               .map((dao) => (
-                <GridItem key={dao.daoInfo.daoId} rowSpan={1}>
+                <GridItem key={Number(dao.daoInfo.daoId)} rowSpan={1}>
                   <DaoCard
                     daoName={dao.daoInfo.daoName}
                     joiningThreshold={dao.daoInfo.joiningThreshold}

@@ -36,7 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>ETHSF</title>
+        <title>GovernEase - ETHSF</title>
         <meta name="description" content="Unlocking DAO Potential" />
       </Head>
       <WagmiProvider>
