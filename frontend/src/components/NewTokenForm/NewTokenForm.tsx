@@ -37,6 +37,7 @@ import {
   ring,
 } from "@chakra-ui/react";
 import userSideabi from "../../utils/abis/usersideabi.json";
+import userSide2abi from "../../utils/abis/userside2abi.json";
 import creategovernanceabi from "../../utils/abis/creategovernancetokenabi.json";
 import { useAccount } from "wagmi";
 
@@ -307,7 +308,7 @@ export default function NewTokenForm() {
       } else if (chainId === 11155111) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          userSideabi,
+          userSide2abi,
           signer
         );
         createTokenContract = new ethers.Contract(
@@ -395,7 +396,7 @@ export default function NewTokenForm() {
       } else if (chainId === 11155111) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          userSideabi,
+          userSide2abi,
           signer
         );
       }
@@ -408,9 +409,7 @@ export default function NewTokenForm() {
         tokenAddress,
         daovisibility,
         accounts[0],
-        {
-          gasLimit: 1000000,
-        }
+        "123"
       );
 
       console.log(tx);

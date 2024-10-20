@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import usersideabi from "../../utils/abis/usersideabi.json";
+import userside2abi from "../../utils/abis/userside2abi.json";
 import governancetokenabi from "../../utils/abis/governancetokenabi.json";
 import {
   Progress,
@@ -97,7 +98,7 @@ const Explore = () => {
         case 11155111:
           userSideInstance = new ethers.Contract(
             process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-            usersideabi,
+            userside2abi,
             signer
           );
           break;

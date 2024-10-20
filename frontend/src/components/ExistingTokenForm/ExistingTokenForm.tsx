@@ -37,6 +37,7 @@ import {
   ring,
 } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
+import userside2abi from "../../utils/abis/userside2abi.json";
 
 const Form1 = ({ getName, getSummary }) => {
   const [show, setShow] = useState(false);
@@ -390,25 +391,46 @@ export default function ExistingTokenForm() {
           signer
         );
       } else if (chainId === 11155111) {
+        // DAOMANAGER ==> Sarvesh's New Contract
+        // AND userside2abi ==> Sarvesh's New abi
+        // only applicable for sepolia testnet
         userSideContract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          userSideabi,
+          process.env.NEXT_PUBLIC_DAOMANAGER_SEPOLIA_ADDRESS,
+          userside2abi,
           signer
         );
       }
       const accounts = await provider.listAccounts();
-      const tx = await userSideContract.createDao(
-        name,
-        desc,
-        threshholdToken,
-        proposalToken,
-        tokenAddress,
-        daovisibility,
-        accounts[0],
-        {
-          gasLimit: 1000000,
-        }
-      );
+      let tx;
+      if (chainId === 11155111) {
+        tx = await userSideContract.createDao(
+          name,
+          desc,
+          threshholdToken,
+          proposalToken,
+          tokenAddress,
+          daovisibility,
+          accounts[0],
+          "123",
+          {
+            gasLimit: 1000000,
+          }
+        );
+        await tx.wait(1);
+      } else {
+        tx = await userSideContract.createDao(
+          name,
+          desc,
+          threshholdToken,
+          proposalToken,
+          tokenAddress,
+          daovisibility,
+          accounts[0],
+          {
+            gasLimit: 1000000,
+          }
+        );
+      }
 
       console.log(tx);
 
@@ -421,6 +443,43 @@ export default function ExistingTokenForm() {
         duration: 10000,
         isClosable: true,
       });
+    } else {
+      toast({
+        title: "Connect Wallet",
+        description: "Please connect your wallet to mint tokens",
+        status: "error",
+        duration: 10000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const deployCrossChain = async () => {
+    if (account.isConnected) {
+      console.log("account connected");
+      console.log(`chainId is: ${chainId}`);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      let managerContractInstance = new ethers.Contract(
+        process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
+        userside2abi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const tx = await managerContractInstance.bridgeDaoMessage(1, true);
+      await tx.wait(1);
+      toast({
+        title: "Cross-chain Deployed",
+        description: `Hold Tight! We are verifying merkle proof.`,
+        status: "success",
+        duration: 10000,
+        isClosable: true,
+      });
+
+      // flow === 545
+      //polygonZkEvmCardona === 2442
+      // skaleCalypsoTestnet === 974399131
+      //sepolia === 11155111
     } else {
       toast({
         title: "Connect Wallet",
@@ -494,16 +553,27 @@ export default function ExistingTokenForm() {
             </Button>
           </Flex>
           {step === 3 ? (
-            <Button
-              w="7rem"
-              colorScheme="red"
-              variant="solid"
-              onClick={() => {
-                createDAO();
-              }}
-            >
-              Submit
-            </Button>
+            <>
+              <Button
+                w="7rem"
+                colorScheme="red"
+                variant="solid"
+                onClick={() => {
+                  createDAO();
+                }}
+              >
+                Submit
+              </Button>
+              {chainId === 11155111 ? (
+                <Button
+                  onClick={() => {
+                    deployCrossChain();
+                  }}
+                >
+                  Deploy Cross-chain
+                </Button>
+              ) : null}
+            </>
           ) : null}
         </Flex>
       </ButtonGroup>
