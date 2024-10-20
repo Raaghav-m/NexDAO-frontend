@@ -363,8 +363,6 @@ export default function NewTokenForm() {
   };
 
   const createDAO = async () => {
-    // repeat similar logic as mintToken
-
     if (account.isConnected) {
       console.log("account connected");
       console.log(`chainId is: ${chainId}`);
