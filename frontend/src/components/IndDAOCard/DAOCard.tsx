@@ -81,7 +81,7 @@ const BlogAuthor = (props: BlogAuthorProps) => {
   );
 };
 
-const DaosCard = ({
+const DaoCard = ({
   daoName,
   tokenName,
   joiningThreshold,
@@ -368,4 +368,4 @@ const DaosCard = ({
   );
 };
 
-export default DaosCard;
+export default DaoCard;
