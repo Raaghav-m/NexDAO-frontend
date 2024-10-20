@@ -96,7 +96,7 @@ const Navbar = () => {
                     display={{ base: "none", md: "flex" }}
                     marginRight={4}
                   >
-                    <Link href="/explore">
+                    <Link href="/Explore">
                       <Button w="full" variant="ghost">
                         Explore
                       </Button>
@@ -109,7 +109,7 @@ const Navbar = () => {
                     display={{ base: "none", md: "flex" }}
                     marginRight={4}
                   >
-                    <Link href="/profile">
+                    <Link href="/Profile">
                       <Button w="full" variant="ghost">
                         Profile
                       </Button>
