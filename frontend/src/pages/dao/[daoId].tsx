@@ -8,7 +8,7 @@ import usersideabi from "@/utils/abis/usersideabi.json";
 import DaoDetails from "@/components/DaoPageModals/DaoDetails/DaoDetails";
 import FileShare from "@/components/DaoPageModals/FileShare/FileShare";
 import ProposalTab from "@/components/DaoPageModals/ProposalTab/ProposalTab";
-import ProposalModal from "@/components/DaoPageModals/ProposalModal/proposalModal";
+import ProposalModal from "@/components/DaoPageModals/ProposalModal/ProposalModal";
 import VoteModal from "@/components/DaoPageModals/VoteModal/VoteModal";
 import InviteModal from "@/components/DaoPageModals/InviteModal/InviteModal";
 import VoteResults from "@/components/DaoPageModals/VoteResults/VoteResults";
