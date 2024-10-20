@@ -111,7 +111,7 @@ const Navbar = () => {
             color="brand.00"
           >
             <Link href="/" mt={4}>
-              ETHSF
+              GovernEase
             </Link>
           </HStack>
           <Flex alignItems={"center"}>
