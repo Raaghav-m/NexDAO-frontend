@@ -1,42 +1,29 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck comment
-import React, { useState, useRef, use, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  Progress,
   Box,
-  ButtonGroup,
   Button,
   Heading,
-  Flex,
+  VStack,
   FormControl,
-  GridItem,
   FormLabel,
   Input,
-  Select,
-  SimpleGrid,
-  InputLeftAddon,
-  InputGroup,
   Textarea,
-  FormHelperText,
-  InputRightElement,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  Icon,
-  chakra,
-  VisuallyHidden,
+  useToast,
+  Container,
   Text,
-  Stack,
-  ring,
+  InputGroup,
+  InputLeftElement,
+  Icon,
+  useColorModeValue,
 } from "@chakra-ui/react";
-
-import { useToast } from "@chakra-ui/react";
+import { FaUser, FaEnvelope, FaFileImage } from "react-icons/fa";
 import { ethers } from "ethers";
 import lighthouse from "@lighthouse-web3/sdk";
 import usersideabi from "../../utils/abis/usersideabi.json";
 import { useAccount } from "wagmi";
+import { s } from "framer-motion/client";
 
 const RegisterForm = () => {
   const toast = useToast();
@@ -49,10 +36,16 @@ const RegisterForm = () => {
   const [ipfsUrl, setIpfsUrl] = useState("");
   const [profileImage, setProfileImage] = useState("");
 
+  const bgColor = useColorModeValue("white", "gray.700");
+  const textColor = useColorModeValue("gray.800", "white");
+
   useEffect(() => {
     const updateChainId = async () => {
       if (account) {
         setChainId(account.chainId);
+        if (account.chainId === 974399131) {
+          await handlesFuelDistribution();
+        }
       }
     };
 
@@ -78,10 +71,10 @@ const RegisterForm = () => {
     setIpfsUrl(output.data.Hash);
 
     toast({
-      title: "Image Uploaded to the IPFS.",
-      description: "Congratulations 🎉 ",
+      title: "Image Uploaded to IPFS",
+      description: "Your profile image has been successfully uploaded.",
       status: "success",
-      duration: 1000,
+      duration: 3000,
       isClosable: true,
       position: "top-right",
     });
@@ -91,17 +84,47 @@ const RegisterForm = () => {
     );
   };
 
+  const handlesFuelDistribution = async () => {
+    if (account.isConnected) {
+      if (account.chainId === 974399131) {
+        const response = await fetch(
+          `http://localhost:8888/balance/${account.address}`
+        );
+        const data = await response.json();
+        console.log(data.balance);
+        if (data.balance < 100000) {
+          console.log("not enough fuel");
+          const response = await fetch(
+            `http://localhost:8888/claim/${account.address}`
+          );
+          const data = await response.json();
+          console.log(data);
+        }
+      }
+    } else {
+      toast({
+        title: "No Account Connected",
+        description: "Please connect your wallet.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
+
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
     if (account.isConnected) {
       console.log("account connected");
       console.log(`chainId is: ${chainId}`);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       let contract;
-      // flow === 545
-      //polygonZkEvmCardona === 2442
-      // skaleCalypsoTestnet === 974399131
-      //sepolia === 11155111
+
       if (chainId === 545) {
         contract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
@@ -120,6 +143,7 @@ const RegisterForm = () => {
           usersideabi,
           signer
         );
+        await handlesFuelDistribution();
       } else if (chainId === 11155111) {
         contract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
@@ -127,6 +151,7 @@ const RegisterForm = () => {
           signer
         );
       }
+
       const accounts = await provider.listAccounts();
       const tx = await contract.createUser(
         name,
@@ -138,130 +163,109 @@ const RegisterForm = () => {
       await tx.wait();
 
       toast({
-        title: "User Registered.",
-        description: "Congratulations 🎉 ",
+        title: "Registration Successful",
+        description: "Welcome to our DAO platform!",
         status: "success",
         duration: 5000,
         isClosable: true,
+        position: "top-right",
       });
     } else {
-      onsole.log("no account connected");
+      console.log("no account connected");
       toast({
         title: "No Account Connected",
-        description: "Please connect your wallet.",
+        description: "Please connect your wallet to register.",
         status: "error",
-        duration: 1000,
+        duration: 3000,
         isClosable: true,
         position: "top-right",
       });
     }
-  };
-
-  const getUser = async () => {
-    if (window.ethereum._state.accounts.length !== 0) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const userSideInstance = new ethers.Contract(
-        process.env.NEXT_PUBLIC_USERSIDE_SKALE_ADDRESS,
-        usersideabi,
-        signer
-      );
-      const tempUser = await userSideInstance.userIdtoUser(2);
-      console.log(tempUser);
-    } else {
-      console.log("No Metamask Found");
-    }
+    setSubmitting(false);
   };
 
   return (
-    <>
+    <Container maxW="container.md" py={10}>
       <Box
-        borderWidth="1px"
-        rounded="lg"
-        shadow="1px 1px 3px rgba(0,0,0,0.3)"
-        maxWidth={800}
-        p={6}
-        m="10px auto"
-        as="form"
+        bg={bgColor}
+        borderRadius="lg"
+        boxShadow="lg"
+        p={8}
+        color={textColor}
       >
-        <SimpleGrid columns={1} spacing={6}>
-          <Heading w="100%" textAlign={"center"} fontWeight="normal" mb="2%">
-            Join Now!🎯
+        <VStack spacing={6} as="form" onSubmit={handleSubmit}>
+          <Heading as="h1" size="xl" textAlign="center">
+            Join Our DAO Community
           </Heading>
-          <FormControl mr="2%">
-            <FormLabel htmlFor="name" fontWeight={"normal"}>
-              User Name
-            </FormLabel>
-            <Input
-              id="name"
-              placeholder="Name"
-              autoComplete="name"
-              onChange={(e) => setName(e.target.value)}
-            />
+          <Text textAlign="center" fontSize="lg">
+            Register now to participate in governance and decision-making!
+          </Text>
+
+          <FormControl isRequired>
+            <FormLabel>Username</FormLabel>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FaUser} color="gray.300" />
+              </InputLeftElement>
+              <Input
+                type="text"
+                placeholder="Enter your username"
+                onChange={(e) => setName(e.target.value)}
+              />
+            </InputGroup>
           </FormControl>
-          <FormControl>
-            <FormLabel htmlFor="email" fontWeight={"normal"}>
-              Email Address
-            </FormLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="abc@gmail.com"
-              autoComplete="email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+
+          <FormControl isRequired>
+            <FormLabel>Email Address</FormLabel>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FaEnvelope} color="gray.300" />
+              </InputLeftElement>
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </InputGroup>
           </FormControl>
-          <FormControl id="bio">
-            <FormLabel
-              fontSize="sm"
-              fontWeight="md"
-              color="gray.700"
-              _dark={{
-                color: "gray.50",
-              }}
-            >
-              Bio
-            </FormLabel>
+
+          <FormControl isRequired>
+            <FormLabel>Bio</FormLabel>
             <Textarea
-              placeholder="Write a short bio for yourself"
-              rows={3}
-              shadow="sm"
-              focusBorderColor="brand.400"
-              fontSize={{
-                sm: "sm",
-              }}
+              placeholder="Tell us about yourself"
+              rows={4}
               onChange={(e) => setBio(e.target.value)}
             />
-            <FormHelperText>Short Bio. URLs are hyperlinked.</FormHelperText>
           </FormControl>
 
           <FormControl>
-            <FormLabel
-              fontWeight={"normal"}
-              color="gray.700"
-              _dark={{
-                color: "gray.50",
-              }}
-            >
-              Profile Image
-            </FormLabel>
-
-            <Input onChange={(e) => uploadFile(e.target.files)} type="file" />
+            <FormLabel>Profile Image</FormLabel>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FaFileImage} color="gray.300" />
+              </InputLeftElement>
+              <Input
+                type="file"
+                onChange={(e) => uploadFile(e.target.files)}
+                accept="image/*"
+                p={1}
+              />
+            </InputGroup>
           </FormControl>
-        </SimpleGrid>
-        <Button
-          display="block"
-          mx="auto"
-          mt={6}
-          w="10rem"
-          colorScheme="purple"
-          variant="solid"
-          onClick={handleSubmit}
-        >
-          Register
-        </Button>
+
+          <Button
+            isLoading={submitting}
+            colorScheme="blue"
+            size="lg"
+            width="full"
+            type="submit"
+            onClick={handleSubmit}
+          >
+            Register
+          </Button>
+        </VStack>
       </Box>
-    </>
+    </Container>
   );
 };
 

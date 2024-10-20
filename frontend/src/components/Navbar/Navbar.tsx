@@ -33,6 +33,58 @@ import {
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const account = useAccount();
+  const [chainId, setChainId] = useState(0);
+
+  useEffect(() => {
+    const updateChainId = async () => {
+      if (account) {
+        setChainId(account.chainId);
+        // check if the chain is Skale
+        if (account.chainId === 974399131) {
+          console.log("reached the fn call");
+          await handlesFuelDistribution();
+        }
+      }
+    };
+
+    updateChainId();
+  }, [account]);
+
+  const handlesFuelDistribution = async () => {
+    //check if the account is connceted
+    console.log("function is called");
+    if (account.isConnected) {
+      // check if the chain is Skale
+
+      if (account.chainId === 974399131) {
+        // make a get request to the api to get the fuel distribution
+        const response = await fetch(
+          `http://localhost:8888/balance/${account.address}`
+        );
+        const data = await response.json();
+        console.log(data.balance);
+        // check if the user has enough fuel (should be more than 100000)
+        if (data.balance < 100000) {
+          console.log("not enough fuel");
+          // make a post request to the api to distribute the fuel
+          const response = await fetch(
+            `http://localhost:8888/claim/${account.address}`
+          );
+          const data = await response.json();
+          console.log(data);
+        }
+      }
+    } else {
+      toast({
+        title: "No Account Connected",
+        description: "Please connect your wallet.",
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
 
   return (
     <>
