@@ -199,15 +199,15 @@ const Explore = () => {
         <Container
           maxW={"7xl"}
           p="12"
-          templateRows="repeat(2, 1fr)"
-          templateColumns="repeat(4, 1fr)"
+          templaterows="repeat(2, 1fr)"
+          templatecolumns="repeat(4, 1fr)"
           gap={4}
         >
           {daos &&
             daos
               .filter((dao) => dao.daoInfo.isPrivate === false)
               .map((dao) => (
-                <GridItem rowSpan={1}>
+                <GridItem key={dao.daoInfo.daoId} rowSpan={1}>
                   <DaoCard
                     daoName={dao.daoInfo.daoName}
                     joiningThreshold={dao.daoInfo.joiningThreshold}
