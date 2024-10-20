@@ -41,7 +41,7 @@ import {
   AbsoluteCenter,
   useToast,
 } from "@chakra-ui/react";
-import DaoCard from "../../components/IndDAOCard/DaoCard";
+import DaoCard from "@/components/IndDAOCard/DAOCard";
 import { Spinner } from "@chakra-ui/react";
 
 const Explore = () => {
