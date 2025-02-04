@@ -145,27 +145,6 @@ const Form3 = ({ getJoiningThreshold, getProposal, getVisibility }) => {
             Enter minimum number of tokens required to create a proposal
           </FormHelperText>
         </FormControl>
-        <FormControl mr="5%">
-          <FormLabel fontWeight={"normal"}>Is DAO private ?</FormLabel>
-          <RadioGroup defaultValue="2">
-            <Stack spacing={5} direction="row">
-              <Radio
-                colorScheme="red"
-                value="1"
-                onChange={() => handleVisibility(false)}
-              >
-                No
-              </Radio>
-              <Radio
-                colorScheme="green"
-                value="2"
-                onChange={() => handleVisibility(true)}
-              >
-                Yes
-              </Radio>
-            </Stack>
-          </RadioGroup>
-        </FormControl>
       </SimpleGrid>
     </>
   );
@@ -410,8 +389,7 @@ export default function NewTokenForm() {
           proposalToken,
           tokenAddress,
           daovisibility,
-          accounts[0],
-          "123"
+          accounts[0]
         );
       } else {
         tx = await userSideContract.createDao(

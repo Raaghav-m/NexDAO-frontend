@@ -389,7 +389,6 @@ export default function ExistingTokenForm() {
           tokenAddress,
           daovisibility,
           accounts[0],
-          "123",
           {
             gasLimit: 1000000,
           }
