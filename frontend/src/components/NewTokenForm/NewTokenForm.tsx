@@ -246,7 +246,7 @@ export default function NewTokenForm() {
   const [tokenName, settokenName] = useState("");
   const [tokenSupply, setTokenSupply] = useState("");
   const [tokenAddress, settokenAddress] = useState("");
-  const [daovisibility, setdaoVisibility] = useState(false);
+  const [daovisibility, setdaoVisibility] = useState(true);
   const [chainId, setChainId] = useState();
   const toast = useToast();
   const account = useAccount();
@@ -308,7 +308,7 @@ export default function NewTokenForm() {
       } else if (chainId === 11155111) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          userSide2abi,
+          userSideabi,
           signer
         );
         createTokenContract = new ethers.Contract(
@@ -396,7 +396,7 @@ export default function NewTokenForm() {
       } else if (chainId === 11155111) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          userSide2abi,
+          userSideabi,
           signer
         );
       }

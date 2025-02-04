@@ -43,31 +43,6 @@ export default function Footer() {
       color={useColorModeValue("gray.700", "gray.200")}
       marginTop={"auto"}
     >
-      <Container
-        as={Stack}
-        maxW={"6xl"}
-        py={4}
-        direction={{ base: "column", md: "row" }}
-        spacing={4}
-        justify={{ base: "center", md: "space-between" }}
-        align={{ base: "center", md: "center" }}
-      >
-        <b>
-          <Text>Made with 💙 by Soham Kayal @ETHSF</Text>
-        </b>
-
-        <Stack direction={"row"} spacing={6}>
-          <SocialButton label={"GitHub"}>
-            <a
-              href="https://github.com/Sohamkayal4103/ETHSF"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <FaGithub />
-            </a>
-          </SocialButton>
-        </Stack>
-      </Container>
       <ScrollToTop
         smooth
         color="#39445a"

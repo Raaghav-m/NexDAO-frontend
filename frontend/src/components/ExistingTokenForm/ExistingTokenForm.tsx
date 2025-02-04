@@ -146,29 +146,6 @@ const Form2 = ({ getJoiningThreshold, getProposal, getVisibility }) => {
             Enter minimum number of tokens required to create a proposal
           </FormHelperText>
         </FormControl>
-        <FormControl mr="5%">
-          <FormLabel htmlFor="first-name" fontWeight={"normal"}>
-            Is DAO private ?
-          </FormLabel>
-          <RadioGroup defaultValue="2">
-            <Stack spacing={5} direction="row">
-              <Radio
-                colorScheme="red"
-                value="1"
-                onChange={() => handleVisibility(false)}
-              >
-                No
-              </Radio>
-              <Radio
-                colorScheme="green"
-                value="2"
-                onChange={() => handleVisibility(true)}
-              >
-                Yes
-              </Radio>
-            </Stack>
-          </RadioGroup>
-        </FormControl>
       </SimpleGrid>
     </>
   );
@@ -345,7 +322,7 @@ export default function ExistingTokenForm() {
   const [proposalToken, setProposalToken] = useState();
   const [desc, setdesc] = useState("");
   const [tokenAddress, settokenAddress] = useState("");
-  const [daovisibility, setdaoVisibility] = useState(false);
+  const [daovisibility, setdaoVisibility] = useState(true);
   const [chainId, setChainId] = useState(0);
   const account = useAccount();
 

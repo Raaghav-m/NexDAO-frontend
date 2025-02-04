@@ -127,7 +127,7 @@ const Profile = () => {
         case 11155111:
           userSideInstance = new ethers.Contract(
             process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-            userside2abi,
+            usersideabi,
             signer
           );
           break;
