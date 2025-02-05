@@ -238,21 +238,6 @@ const RegisterForm = () => {
             />
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Profile Image</FormLabel>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none">
-                <Icon as={FaFileImage} color="gray.300" />
-              </InputLeftElement>
-              <Input
-                type="file"
-                onChange={(e) => uploadFile(e.target.files)}
-                accept="image/*"
-                p={1}
-              />
-            </InputGroup>
-          </FormControl>
-
           <Button
             isLoading={submitting}
             colorScheme="blue"

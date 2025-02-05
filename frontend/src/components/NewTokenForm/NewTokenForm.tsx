@@ -225,7 +225,7 @@ export default function NewTokenForm() {
   const [tokenName, settokenName] = useState("");
   const [tokenSupply, setTokenSupply] = useState("");
   const [tokenAddress, settokenAddress] = useState("");
-  const [daovisibility, setdaoVisibility] = useState(true);
+  const [daovisibility, setdaoVisibility] = useState(false);
   const [chainId, setChainId] = useState();
   const toast = useToast();
   const account = useAccount();

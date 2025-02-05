@@ -65,6 +65,19 @@ const Explore = () => {
     });
   }, [account]);
 
+  const getTotalDaoUsers = async (
+    daoId: number,
+    userSideInstance: ethers.Contract
+  ) => {
+    try {
+      const totalUsers = await userSideInstance.getAllDaoMembers(daoId);
+      return totalUsers.length;
+    } catch (error) {
+      console.error(`Error getting total users for DAO ${daoId}:`, error);
+      return 0;
+    }
+  };
+
   const onLoad = async () => {
     if (account.isConnected) {
       console.log("account connected");
@@ -117,6 +130,9 @@ const Explore = () => {
           );
           const tempTokenAddress = tempDaoInfo.governanceTokenAddress;
 
+          // Get total users for this DAO
+          const totalUsers = await getTotalDaoUsers(i, userSideInstance);
+
           const governanceTokenInstance = new ethers.Contract(
             tempTokenAddress,
             governancetokenabi,
@@ -133,6 +149,7 @@ const Explore = () => {
             creatorInfo: tempCreatorInfo,
             tokenName: tempTokenName,
             tokenSymbol: tempTokenSymbol,
+            totalUsers: totalUsers,
           });
 
           console.log({
@@ -145,7 +162,7 @@ const Explore = () => {
         }
 
         setDaos(newDaos);
-        console.log(newDaos);
+        console.log(newDaos[0]);
         const totalUsersDAO = await userSideInstance.getAllDaoMembers(
           newDaos[0].daoInfo.daoId
         );
@@ -207,7 +224,7 @@ const Explore = () => {
           {daos &&
             daos
               .filter((dao) => dao.daoInfo.isPrivate === false)
-              .map((dao) => (
+              .map((dao, index) => (
                 <GridItem key={Number(dao.daoInfo.daoId)} rowSpan={1}>
                   <DaoCard
                     daoName={dao.daoInfo.daoName}
@@ -215,7 +232,7 @@ const Explore = () => {
                     creatorName={dao.creatorInfo.userName}
                     tokenName={dao.tokenName}
                     tokenSymbol={dao.tokenSymbol}
-                    totalDaoMember={totaluserDAO}
+                    totalDaoMember={dao.totalUsers}
                     daoId={dao.daoInfo.daoId}
                   />
                 </GridItem>

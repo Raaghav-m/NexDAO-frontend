@@ -194,20 +194,14 @@ const DaoCard = ({
           transform: "translateY(-4px)",
         }}
       >
-        <Box
-          display="flex"
-          flex="1"
-          marginRight="3"
-          position="relative"
-          alignItems="center"
-        >
+        <Box>
           {/* <Box
             width={{ base: "100%", sm: "85%" }}
             zIndex="2"
             marginLeft={{ base: "0", sm: "5%" }}
             marginTop="5%"
           > */}
-          <Box textDecoration="none" _hover={{ textDecoration: "none" }}>
+          {/* <Box textDecoration="none" _hover={{ textDecoration: "none" }}>
             <Image
               borderRadius="lg"
               src="/assets/dao.png"
@@ -223,9 +217,8 @@ const DaoCard = ({
               alignContent={"center"}
               justifyContent={"center"}
             />
-          </Box>
-          {/* </Box> */}
-          <Box zIndex="1" width="100%" position="absolute" height="100%">
+          </Box> */}
+          {/* <Box zIndex="1" width="100%" position="absolute" height="100%">
             <Box
               bgGradient={useColorModeValue(
                 "radial(orange.600 1px, transparent 1px)",
@@ -235,7 +228,7 @@ const DaoCard = ({
               opacity="0.4"
               height="100%"
             />
-          </Box>
+          </Box> */}
         </Box>
         <Box
           display="flex"

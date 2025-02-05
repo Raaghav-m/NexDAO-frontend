@@ -55,36 +55,6 @@ const CreateDao = () => {
               width={{ base: "70%", md: "45%" }}
               height="6.25rem"
               padding="4"
-              colorScheme="teal"
-              variant="solid"
-              borderRadius="md"
-              transition="background 0.8s"
-              backgroundPosition="center"
-              _hover={{
-                bgColor: `${scheme}.${step2}`,
-                bgGradient: `radial(circle, transparent 1%, ${scheme}.${step2} 1%)`,
-                bgPos: "center",
-                backgroundSize: "15000%",
-              }}
-              onClick={() => {
-                setIsExistingToken(!existingToken);
-                setShowBtn(false);
-              }}
-              _active={{
-                bgColor: `${scheme}.${step3}`,
-                backgroundSize: "100%",
-                transition: "background 0s",
-              }}
-              // marginRight="2%"
-            >
-              <Text fontSize="xl" fontWeight="bold">
-                Import Existing Token
-              </Text>
-            </Button>
-            <Button
-              width={{ base: "70%", md: "45%" }}
-              height="6.25rem"
-              padding="4"
               colorScheme="orange"
               variant="solid"
               borderRadius="md"
@@ -114,7 +84,6 @@ const CreateDao = () => {
         </Box>
       ) : null}
 
-      {existingToken ? <ExistingTokenForm /> : null}
       {newToken ? <NewTokenForm /> : null}
     </>
   );

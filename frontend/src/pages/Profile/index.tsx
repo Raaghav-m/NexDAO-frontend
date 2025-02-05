@@ -23,6 +23,7 @@ import {
 } from "@chakra-ui/react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { on } from "events";
+import { useRouter } from "next/router";
 
 const Profile = () => {
   const account = useAccount();
@@ -31,6 +32,7 @@ const Profile = () => {
   const [chainId, setChainId] = useState(0);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const updateChainId = async () => {
@@ -243,12 +245,14 @@ const Profile = () => {
                 borderWidth="1px"
                 borderRadius="lg"
                 position="relative"
+                cursor="pointer"
+                onClick={() => router.push(`/dao/${dao.daoInfo[0].toString()}`)}
               >
                 <Heading size="sm">{dao.daoInfo.daoName}</Heading>
                 <Text mt={2}>{dao.daoInfo.daoDescription}</Text>
                 <Link
                   color="teal.500"
-                  href={`https://ethsf-seven.vercel.app/dao/${dao.daoInfo[0].toString()}`}
+                  href={`/dao/${dao.daoInfo[0].toString()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   position="absolute"
