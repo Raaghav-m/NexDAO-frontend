@@ -68,6 +68,8 @@ const DaoPage = () => {
   const inputRef = useRef(null);
   const toast = useToast();
   const [chainId, setChainId] = useState(0);
+  const [currentProposalType, setCurrentProposalType] = useState(1); // 1 for standard, 2 for quadratic
+  const [tokenAmount, setTokenAmount] = useState("");
 
   const changeHandler = () => {
     setProfileImage(inputRef.current?.files[0]);
@@ -467,12 +469,27 @@ const DaoPage = () => {
         });
 
         setSubmitSt(true);
-        const tx2 = await userSideInstance.voteForProposal(
-          proposalForVote,
-          userResponse,
-          account.address,
-          { gasLimit: 500000 }
-        );
+        let tx2;
+
+        if (currentProposalType === 2) {
+          // Quadratic voting
+          tx2 = await userSideInstance.qvVoting(
+            proposalForVote,
+            tokenAmount,
+            account.address,
+            userResponse,
+            { gasLimit: 500000 }
+          );
+        } else {
+          // Standard voting
+          tx2 = await userSideInstance.voteForProposal(
+            proposalForVote,
+            userResponse,
+            account.address,
+            { gasLimit: 500000 }
+          );
+        }
+
         console.log("Voting Transaction sent:", tx2.hash);
         await tx2.wait(1);
         setSubmitSt(false);
@@ -735,7 +752,6 @@ const DaoPage = () => {
     var now = new Date();
     var timestamp = now.getTime();
     var secondsSinceEpoch = timestamp / 1000;
-    console.log(beginningTime);
     if (secondsSinceEpoch < Number(beginningTime)) {
       //to be happening in future
       return -1;
@@ -787,40 +803,89 @@ const DaoPage = () => {
       }
 
       try {
-        const yesArray = await userSideInstance.getAllYesVotes(_proposalId);
-        const noArray = await userSideInstance.getAllNoVotes(_proposalId);
-        const abstainArray = await userSideInstance.getAllAbstainVotes(
+        const propInfo = await userSideInstance.proposalIdtoProposal(
           _proposalId
         );
-        const totalArray = await userSideInstance.getAllVoters(_proposalId);
+        const proposalType = Number(propInfo.proposalType);
+        setCurrentProposalType(proposalType);
 
-        console.log(`yes array length: ${Number(yesArray.length)}`);
-        console.log(`noArray length: ${Number(noArray.length)}`);
-        console.log(`abstainArray length: ${Number(abstainArray.length)}`);
-        const yesPercentage =
-          (yesArray.length /
-            (yesArray.length + noArray.length + abstainArray.length)) *
-          100;
-        const noPercentage =
-          (noArray.length /
-            (yesArray.length + noArray.length + abstainArray.length)) *
-          100;
-        console.log(yesPercentage);
+        // Check if proposal has ended
+        const currentTime = Math.floor(Date.now() / 1000);
+        const hasEnded = currentTime > Number(propInfo.endingTime);
+
+        if (hasEnded) {
+          try {
+            setSubmitSt(true);
+            // Attempt to finalize the proposal
+            const tx = await userSideInstance.finalizeProposal(_proposalId, {
+              gasLimit: 500000,
+            });
+            await tx.wait();
+            setSubmitSt(false);
+
+            toast({
+              title: "Proposal Finalized",
+              description: "The proposal has been successfully finalized.",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          } catch (error) {
+            // If error contains "already finalized", continue silently
+            // Otherwise show the error
+            if (!error.message.includes("already finalized")) {
+              console.error("Error finalizing proposal:", error);
+              toast({
+                title: "Error",
+                description:
+                  "Failed to finalize the proposal. It may already be finalized.",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+                position: "top-right",
+              });
+            }
+          }
+        }
+
+        // Get votes arrays
+        const [yesArray, noArray, abstainArray] = await Promise.all([
+          userSideInstance.getAllYesVotes(_proposalId),
+          userSideInstance.getAllNoVotes(_proposalId),
+          userSideInstance.getAllAbstainVotes(_proposalId),
+        ]);
+
         setYesVotes(yesArray);
         setNoVotes(noArray);
         setAbstainVotes(abstainArray);
-        const propInfo = await userSideInstance.proposalIdtoProposal(
-          proposalForVote
-        );
-        const winnningThresold = Number(propInfo.passingThreshold);
-        if (yesPercentage >= winnningThresold && yesPercentage > noPercentage) {
-          console.log(`${yesPercentage} >= ${winnningThresold}`);
-          setFinalVerdict("Proposal has Passed!");
+
+        if (proposalType === 2) {
+          // For quadratic voting, use contract's result
+          const result = await userSideInstance.proposalResults(_proposalId);
+          setFinalVerdict(
+            result ? "Proposal has Passed!" : "Proposal has been reverted"
+          );
         } else {
-          setFinalVerdict("Proposal has been reverted");
+          // For standard voting, calculate based on votes and threshold
+          const totalVotes = yesArray.length + noArray.length;
+          if (totalVotes === 0) {
+            setFinalVerdict("No votes cast");
+            return;
+          }
+
+          const yesPercentage = (yesArray.length / totalVotes) * 100;
+          const passingThreshold = Number(propInfo.passingThreshold);
+
+          setFinalVerdict(
+            yesPercentage >= passingThreshold
+              ? "Proposal has Passed!"
+              : "Proposal has been reverted"
+          );
         }
       } catch (error) {
         console.error("Error getting voting results:", error);
+        setSubmitSt(false);
         toast({
           title: "Error",
           description:
@@ -927,6 +992,7 @@ const DaoPage = () => {
         loadAllProposals={loadAllProposals}
         filteringDaos={filteringDaos}
         submitSt={submitSt}
+        setCurrentProposalType={setCurrentProposalType}
       />
 
       <ProposalModal
@@ -952,6 +1018,9 @@ const DaoPage = () => {
         setUserResponse={setUserResponse}
         userResponse={userResponse}
         submitSt={submitSt}
+        proposalType={currentProposalType}
+        tokenAmount={tokenAmount}
+        setTokenAmount={setTokenAmount}
       />
       <InviteModal
         isStartOpen={isStartOpen}
@@ -969,6 +1038,7 @@ const DaoPage = () => {
         abstainVotes={abstainVotes}
         finalVerdict={finalVerdict}
         submitSt={submitSt}
+        proposalType={currentProposalType}
       />
     </div>
   );

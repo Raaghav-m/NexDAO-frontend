@@ -28,6 +28,7 @@ export default function ProposalTab({
   getVotingResults,
   loadAllProposals,
   filteringDaos,
+  setCurrentProposalType,
 }) {
   return (
     <Grid
@@ -57,6 +58,7 @@ export default function ProposalTab({
                 )
                 .map((proposal) => (
                   <Box
+                    key={proposal.proposalInfo.proposalId}
                     p={4}
                     borderWidth="1px"
                     borderRadius="lg"
@@ -74,10 +76,14 @@ export default function ProposalTab({
                         proposal.proposalInfo[2].length
                       )}
                     </Text>
-
+                    <Text mt={2} color="gray.500">
+                      Voting Type:{" "}
+                      {Number(proposal.proposalInfo.proposalType) === 2
+                        ? "Quadratic"
+                        : "Standard"}
+                    </Text>
                     <Flex mt={3}>
                       <span mb={4} h={6}>
-                        {" "}
                         ⚠️
                       </span>
                       <h3 mt={10}>
@@ -94,6 +100,9 @@ export default function ProposalTab({
                         onClick={() => {
                           setProposalForVote(
                             Number(proposal.proposalInfo.proposalId)
+                          );
+                          setCurrentProposalType(
+                            Number(proposal.proposalInfo.proposalType)
                           );
                           handleSizeClick2();
                         }}
