@@ -16,13 +16,16 @@ import {
   Stack,
   Icon,
   Heading,
+  Select,
+  Text,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import { ethers } from "ethers";
 import { Link } from "@chakra-ui/react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import {
   HamburgerIcon,
   CloseIcon,
@@ -30,9 +33,74 @@ import {
   WarningTwoIcon,
 } from "@chakra-ui/icons";
 
+// Network constants
+const NETWORKS = {
+  SEPOLIA: {
+    id: 11155111,
+    name: "Ethereum Sepolia",
+    icon: "🔵",
+  },
+  AMOY: {
+    id: 80002,
+    name: "Polygon Amoy",
+    icon: "🟣",
+  },
+};
+
+const NetworkSwitcher = () => {
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+  const [selectedNetwork, setSelectedNetwork] = useState("");
+
+  useEffect(() => {
+    if (chainId === NETWORKS.SEPOLIA.id) {
+      setSelectedNetwork("SEPOLIA");
+    } else if (chainId === NETWORKS.AMOY.id) {
+      setSelectedNetwork("AMOY");
+    } else {
+      setSelectedNetwork("");
+    }
+  }, [chainId]);
+
+  const handleNetworkChange = (e) => {
+    const networkKey = e.target.value;
+    if (networkKey && NETWORKS[networkKey]) {
+      switchChain({ chainId: NETWORKS[networkKey].id });
+    }
+  };
+
+  if (!chainId) return null;
+
+  return (
+    <Box mr={4}>
+      <Select
+        value={selectedNetwork}
+        onChange={handleNetworkChange}
+        variant="filled"
+        size="sm"
+        borderRadius="md"
+        bg={selectedNetwork === "SEPOLIA" ? "blue.100" : "purple.100"}
+        _hover={{
+          bg: selectedNetwork === "SEPOLIA" ? "blue.200" : "purple.200",
+        }}
+        placeholder="Select Network"
+        width="160px"
+      >
+        <option value="SEPOLIA">
+          {NETWORKS.SEPOLIA.icon} {NETWORKS.SEPOLIA.name}
+        </option>
+        <option value="AMOY">
+          {NETWORKS.AMOY.icon} {NETWORKS.AMOY.name}
+        </option>
+      </Select>
+    </Box>
+  );
+};
+
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const account = useAccount();
+  const toast = useToast();
   const [chainId, setChainId] = useState(0);
 
   useEffect(() => {

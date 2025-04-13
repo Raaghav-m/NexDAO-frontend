@@ -150,26 +150,67 @@ const RegisterForm = () => {
           usersideabi,
           signer
         );
+      } else if (chainId === 80002) {
+        // Polygon Amoy Network
+        contract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+          usersideabi,
+          signer
+        );
+        toast({
+          title: "Using Polygon Amoy Network",
+          description:
+            "Your registration will be processed on Polygon Amoy testnet.",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      } else {
+        toast({
+          title: "Unsupported Network",
+          description:
+            "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or Skale).",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+        setSubmitting(false);
+        return;
       }
 
-      const accounts = await provider.listAccounts();
-      const tx = await contract.createUser(
-        name,
-        email,
-        bio,
-        ipfsUrl,
-        accounts[0]
-      );
-      await tx.wait();
+      try {
+        const accounts = await provider.listAccounts();
+        const tx = await contract.createUser(
+          name,
+          email,
+          bio,
+          ipfsUrl,
+          accounts[0]
+        );
+        await tx.wait();
 
-      toast({
-        title: "Registration Successful",
-        description: "Welcome to our DAO platform!",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-        position: "top-right",
-      });
+        toast({
+          title: "Registration Successful",
+          description: "Welcome to our DAO platform!",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+          position: "top-right",
+        });
+      } catch (error) {
+        console.error("Registration error:", error);
+        toast({
+          title: "Registration Failed",
+          description:
+            error.message || "There was an error processing your registration.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top-right",
+        });
+      }
     } else {
       console.log("no account connected");
       toast({

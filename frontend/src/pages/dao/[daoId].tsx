@@ -25,6 +25,8 @@ import {
   Box,
   Heading,
   Text,
+  Badge,
+  Spinner,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, NotAllowedIcon } from "@chakra-ui/icons";
 import UserSideAbi from "@/utils/abis/usersideabi.json";
@@ -70,6 +72,7 @@ const DaoPage = () => {
   const [chainId, setChainId] = useState(0);
   const [currentProposalType, setCurrentProposalType] = useState(1); // 1 for standard, 2 for quadratic
   const [tokenAmount, setTokenAmount] = useState("");
+  const [networkName, setNetworkName] = useState("");
 
   const changeHandler = () => {
     setProfileImage(inputRef.current?.files[0]);
@@ -124,6 +127,13 @@ const DaoPage = () => {
             usersideabi,
             signer
           );
+          toast({
+            title: "Using Flow Testnet",
+            description: "Inviting member on Flow testnet.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 2442:
           userSideContract = new ethers.Contract(
@@ -131,6 +141,13 @@ const DaoPage = () => {
             usersideabi,
             signer
           );
+          toast({
+            title: "Using Polygon ZkEVM Cardona",
+            description: "Inviting member on Polygon ZkEVM Cardona.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 974399131:
           userSideContract = new ethers.Contract(
@@ -138,6 +155,13 @@ const DaoPage = () => {
             usersideabi,
             signer
           );
+          toast({
+            title: "Using SKALE Network",
+            description: "Inviting member on SKALE Calypso testnet.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 11155111:
           userSideContract = new ethers.Contract(
@@ -145,7 +169,38 @@ const DaoPage = () => {
             usersideabi,
             signer
           );
+          toast({
+            title: "Using Ethereum Sepolia",
+            description: "Inviting member on Ethereum Sepolia testnet.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
+        case 80002:
+          userSideContract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            usersideabi,
+            signer
+          );
+          toast({
+            title: "Using Polygon Amoy Network",
+            description: "Inviting member on Polygon Amoy testnet.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
       }
 
       try {
@@ -197,30 +252,86 @@ const DaoPage = () => {
     if (window.ethereum._state.accounts.length !== 0) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_USERSIDE_ADDRESS,
-        usersideabi,
-        signer
-      );
-      const accounts = await provider.listAccounts();
-      const tx = await contract.uploadDocument(
-        docName,
-        docDesc,
-        daoInfo.daoId,
-        ipfsUrl
-      );
-      setSubmitSt(true);
-      await tx.wait();
-      setSubmitSt(false);
+      let contract;
 
-      toast({
-        title: "Document Uploaded",
-        description: "Your document has been uploaded",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-      onUploadClose();
+      switch (chainId) {
+        case 545:
+          contract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
+            usersideabi,
+            signer
+          );
+          break;
+        case 2442:
+          contract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_CARDONA_ADDRESS,
+            usersideabi,
+            signer
+          );
+          break;
+        case 974399131:
+          contract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_SKALE_ADDRESS,
+            usersideabi,
+            signer
+          );
+          break;
+        case 11155111:
+          contract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
+            usersideabi,
+            signer
+          );
+          break;
+        case 80002:
+          contract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            usersideabi,
+            signer
+          );
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description: "Please switch to a supported network",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+      }
+
+      try {
+        const accounts = await provider.listAccounts();
+        const tx = await contract.uploadDocument(
+          docName,
+          docDesc,
+          daoInfo.daoId,
+          ipfsUrl
+        );
+        setSubmitSt(true);
+        await tx.wait();
+        setSubmitSt(false);
+
+        toast({
+          title: "Document Uploaded",
+          description: "Your document has been uploaded",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        onUploadClose();
+      } catch (error) {
+        console.error("Error uploading document:", error);
+        setSubmitSt(false);
+        toast({
+          title: "Error",
+          description: "Failed to upload document: " + error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     }
   };
 
@@ -303,6 +414,7 @@ const DaoPage = () => {
     }
 
     if (account.isConnected) {
+      setLoading(true);
       console.log("Account connected");
       console.log(`Chain ID: ${account.chainId}`);
 
@@ -318,6 +430,13 @@ const DaoPage = () => {
             UserSideAbi,
             signer
           );
+          toast({
+            title: "Flow Testnet",
+            description: "Viewing DAO on Flow testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 2442:
           userSideInstance = new ethers.Contract(
@@ -325,6 +444,13 @@ const DaoPage = () => {
             UserSideAbi,
             signer
           );
+          toast({
+            title: "Polygon ZkEVM Cardona",
+            description: "Viewing DAO on Polygon ZkEVM Cardona",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 974399131:
           userSideInstance = new ethers.Contract(
@@ -332,6 +458,13 @@ const DaoPage = () => {
             UserSideAbi,
             signer
           );
+          toast({
+            title: "SKALE Network",
+            description: "Viewing DAO on SKALE Calypso testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         case 11155111:
           userSideInstance = new ethers.Contract(
@@ -339,8 +472,39 @@ const DaoPage = () => {
             UserSideAbi,
             signer
           );
+          toast({
+            title: "Ethereum Sepolia",
+            description: "Viewing DAO on Ethereum Sepolia testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+          break;
+        case 80002:
+          userSideInstance = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            UserSideAbi,
+            signer
+          );
+          toast({
+            title: "Polygon Amoy Network",
+            description: "Viewing DAO on Polygon Amoy testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
         default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          setLoading(false);
+          return;
       }
 
       try {
@@ -388,6 +552,7 @@ const DaoPage = () => {
         duration: 5000,
         isClosable: true,
       });
+      setLoading(false);
     }
   };
 
@@ -429,7 +594,41 @@ const DaoPage = () => {
             usersideabi,
             signer
           );
+          toast({
+            title: "Ethereum Sepolia",
+            description: "Voting on Ethereum Sepolia testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+            position: "top-right",
+          });
           break;
+        case 80002:
+          userSideInstance = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            usersideabi,
+            signer
+          );
+          toast({
+            title: "Polygon Amoy Network",
+            description: "Voting on Polygon Amoy testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+            position: "top-right",
+          });
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+          return;
       }
 
       try {
@@ -534,6 +733,26 @@ const DaoPage = () => {
     const updateChainId = async () => {
       if (account) {
         setChainId(account.chainId);
+        // Update network name for display
+        switch (account.chainId) {
+          case 545:
+            setNetworkName("Flow Testnet");
+            break;
+          case 2442:
+            setNetworkName("Polygon ZkEVM Cardona");
+            break;
+          case 974399131:
+            setNetworkName("SKALE Calypso Testnet");
+            break;
+          case 11155111:
+            setNetworkName("Ethereum Sepolia");
+            break;
+          case 80002:
+            setNetworkName("Polygon Amoy");
+            break;
+          default:
+            setNetworkName("Unknown Network");
+        }
       }
     };
 
@@ -584,6 +803,23 @@ const DaoPage = () => {
             signer
           );
           break;
+        case 80002:
+          userSideContract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            UserSideAbi,
+            signer
+          );
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
       }
 
       try {
@@ -676,7 +912,38 @@ const DaoPage = () => {
             UserSideAbi,
             signer
           );
+          toast({
+            title: "Ethereum Sepolia",
+            description: "Creating proposal on Ethereum Sepolia testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
           break;
+        case 80002:
+          userSideContract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            UserSideAbi,
+            signer
+          );
+          toast({
+            title: "Polygon Amoy Network",
+            description: "Creating proposal on Polygon Amoy testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
       }
 
       try {
@@ -721,6 +988,8 @@ const DaoPage = () => {
         });
 
         onAddClose();
+        // Reload proposals to show the new one
+        loadAllProposals(daoInfo.daoId);
       } catch (error) {
         console.error("Error creating proposal:", error);
         setSubmitSt(false);
@@ -800,6 +1069,30 @@ const DaoPage = () => {
             signer
           );
           break;
+        case 80002:
+          userSideInstance = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            UserSideAbi,
+            signer
+          );
+          toast({
+            title: "Polygon Amoy Network",
+            description: "Viewing results on Polygon Amoy testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
       }
 
       try {
@@ -907,7 +1200,19 @@ const DaoPage = () => {
   };
 
   if (loading) {
-    return <Center>Loading...</Center>;
+    return (
+      <Center flexDirection="column" height="50vh">
+        <Spinner
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color={chainId === 80002 ? "purple.500" : "blue.500"}
+          size="xl"
+          mb={4}
+        />
+        <Text>Loading DAO on {networkName}...</Text>
+      </Center>
+    );
   }
 
   if (!isMember) {
@@ -917,7 +1222,7 @@ const DaoPage = () => {
         <Heading as="h2" size="xl" mt={6} mb={2}>
           This DAO is Private
         </Heading>
-        <Text color={"gray.500"}>You are not a member is DAO.</Text>
+        <Text color={"gray.500"}>You are not a member of this DAO.</Text>
       </Box>
     );
   }
@@ -926,122 +1231,141 @@ const DaoPage = () => {
 
   return (
     <div>
-      <Center>
-        <Flex flexDir={"row"} justifyContent={"center"} alignItems={"center"}>
-          {" "}
-          <DaoDetails
-            daoInfo={daoInfo}
-            totalMembers={totalMembers}
-            adminInfo={adminInfo}
-            isMember={isMember}
-            address={address}
-            handleSizeClick1={handleSizeClick1}
-            handleSizeClick3={handleSizeClick3}
-            submitSt={submitSt}
-          />
-          {isMember && (
-            <>
-              <FileShare
-                handleSizeClick5={handleSizeClick5}
-                isUploadOpen={isUploadOpen}
-                onUploadClose={onUploadClose}
-                docName={docName}
-                setDocName={setDocName}
-                docDesc={docDesc}
-                setDocDesc={setDocDesc}
-                profileImage={profileImage}
-                inputRef={inputRef}
-                changeHandler={changeHandler}
-                uploadIPFS={uploadFile}
-                handleSubmit={handleSubmit}
-                daoInfo={daoInfo}
-                submitSt={submitSt}
-              />
-            </>
-          )}
-        </Flex>
-      </Center>
-      <Divider mt={12} mb={12} />
-      <Grid
-        templateColumns={{
-          base: "repeat(1, 1fr)",
-          sm: "repeat(2, 1fr)",
-          md: "repeat(2, 1fr)",
-        }}
-        gap={4}
-      >
-        <GridItem colSpan={3}>
-          <VStack alignItems="flex-start" spacing="20px">
-            <Center>
-              <chakra.h2 fontSize="3xl" fontWeight="700" ml={2}>
-                All proposals
-              </chakra.h2>
-            </Center>
-          </VStack>
-        </GridItem>
-      </Grid>
-      <ProposalTab
-        propSignal={propSignal}
-        proposalArray={proposalArray}
-        isMember={isMember}
-        currentTimestamp={currentTimestamp}
-        setProposalForVote={setProposalForVote}
-        handleSizeClick2={handleSizeClick2}
-        handleSizeClick4={handleSizeClick4}
-        getVotingResults={getVotingResults}
-        loadAllProposals={loadAllProposals}
-        filteringDaos={filteringDaos}
-        submitSt={submitSt}
-        setCurrentProposalType={setCurrentProposalType}
-      />
+      <div>
+        <Center mb={4}>
+          <Badge
+            colorScheme={
+              chainId === 80002
+                ? "purple"
+                : chainId === 11155111
+                ? "blue"
+                : "gray"
+            }
+            fontSize="md"
+            p={2}
+            borderRadius="md"
+          >
+            {networkName}
+          </Badge>
+        </Center>
+      </div>
+      <div>
+        <Center>
+          <Flex flexDir={"row"} justifyContent={"center"} alignItems={"center"}>
+            {" "}
+            <DaoDetails
+              daoInfo={daoInfo}
+              totalMembers={totalMembers}
+              adminInfo={adminInfo}
+              isMember={isMember}
+              address={address}
+              handleSizeClick1={handleSizeClick1}
+              handleSizeClick3={handleSizeClick3}
+              submitSt={submitSt}
+            />
+            {isMember && (
+              <>
+                <FileShare
+                  handleSizeClick5={handleSizeClick5}
+                  isUploadOpen={isUploadOpen}
+                  onUploadClose={onUploadClose}
+                  docName={docName}
+                  setDocName={setDocName}
+                  docDesc={docDesc}
+                  setDocDesc={setDocDesc}
+                  profileImage={profileImage}
+                  inputRef={inputRef}
+                  changeHandler={changeHandler}
+                  uploadIPFS={uploadFile}
+                  handleSubmit={handleSubmit}
+                  daoInfo={daoInfo}
+                  submitSt={submitSt}
+                />
+              </>
+            )}
+          </Flex>
+        </Center>
+        <Divider mt={12} mb={12} />
+        <Grid
+          templateColumns={{
+            base: "repeat(1, 1fr)",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(2, 1fr)",
+          }}
+          gap={4}
+        >
+          <GridItem colSpan={3}>
+            <VStack alignItems="flex-start" spacing="20px">
+              <Center>
+                <chakra.h2 fontSize="3xl" fontWeight="700" ml={2}>
+                  All proposals
+                </chakra.h2>
+              </Center>
+            </VStack>
+          </GridItem>
+        </Grid>
+        <ProposalTab
+          propSignal={propSignal}
+          proposalArray={proposalArray}
+          isMember={isMember}
+          currentTimestamp={currentTimestamp}
+          setProposalForVote={setProposalForVote}
+          handleSizeClick2={handleSizeClick2}
+          handleSizeClick4={handleSizeClick4}
+          getVotingResults={getVotingResults}
+          loadAllProposals={loadAllProposals}
+          filteringDaos={filteringDaos}
+          submitSt={submitSt}
+          setCurrentProposalType={setCurrentProposalType}
+        />
 
-      <ProposalModal
-        setTitle={setTitle}
-        setDescription={setDescription}
-        setVotingThreshold={setVotingThreshold}
-        setPassingThreshold={setPassingThreshold}
-        setProposalType={setProposalType}
-        setTokenAddress={setTokenAddress}
-        setStartDate={setStartDate}
-        setEndTime={setEndTime}
-        setvoteOnce={setvoteOnce}
-        addProposal={addProposal}
-        isAddOpen={isAddOpen}
-        onAddClose={onAddClose}
-        submitSt={submitSt}
-      />
-      <VoteModal
-        isVoteOpen={isVoteOpen}
-        onVoteClose={onVoteClose}
-        proposalForVote={proposalForVote}
-        authorizeContract={authorizeContract}
-        setUserResponse={setUserResponse}
-        userResponse={userResponse}
-        submitSt={submitSt}
-        proposalType={currentProposalType}
-        tokenAmount={tokenAmount}
-        setTokenAmount={setTokenAmount}
-      />
-      <InviteModal
-        isStartOpen={isStartOpen}
-        onStartClose={onStartClose}
-        setInviteAddress={setInviteAddress}
-        inviteAddress={inviteAddress}
-        inviteMember={inviteMembertoDao}
-        submitSt={submitSt}
-      />
-      <VoteResults
-        isEndOpen={isEndOpen}
-        onEndClose={onEndClose}
-        yesVotes={yesVotes}
-        noVotes={noVotes}
-        abstainVotes={abstainVotes}
-        finalVerdict={finalVerdict}
-        submitSt={submitSt}
-        proposalType={currentProposalType}
-      />
+        <ProposalModal
+          setTitle={setTitle}
+          setDescription={setDescription}
+          setVotingThreshold={setVotingThreshold}
+          setPassingThreshold={setPassingThreshold}
+          setProposalType={setProposalType}
+          setTokenAddress={setTokenAddress}
+          setStartDate={setStartDate}
+          setEndTime={setEndTime}
+          setvoteOnce={setvoteOnce}
+          addProposal={addProposal}
+          isAddOpen={isAddOpen}
+          onAddClose={onAddClose}
+          submitSt={submitSt}
+        />
+        <VoteModal
+          isVoteOpen={isVoteOpen}
+          onVoteClose={onVoteClose}
+          proposalForVote={proposalForVote}
+          authorizeContract={authorizeContract}
+          setUserResponse={setUserResponse}
+          userResponse={userResponse}
+          submitSt={submitSt}
+          proposalType={currentProposalType}
+          tokenAmount={tokenAmount}
+          setTokenAmount={setTokenAmount}
+        />
+        <InviteModal
+          isStartOpen={isStartOpen}
+          onStartClose={onStartClose}
+          setInviteAddress={setInviteAddress}
+          inviteAddress={inviteAddress}
+          inviteMember={inviteMembertoDao}
+          submitSt={submitSt}
+        />
+        <VoteResults
+          isEndOpen={isEndOpen}
+          onEndClose={onEndClose}
+          yesVotes={yesVotes}
+          noVotes={noVotes}
+          abstainVotes={abstainVotes}
+          finalVerdict={finalVerdict}
+          submitSt={submitSt}
+          proposalType={currentProposalType}
+        />
+      </div>
     </div>
   );
 };
-
 export default DaoPage;

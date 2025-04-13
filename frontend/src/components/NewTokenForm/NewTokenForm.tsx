@@ -251,6 +251,7 @@ export default function NewTokenForm() {
       //polygonZkEvmCardona === 2442
       // skaleCalypsoTestnet === 974399131
       //sepolia === 11155111
+      //amoy === 80002
       if (chainId === 545) {
         userSideContract = new ethers.Contract(
           process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
@@ -295,41 +296,83 @@ export default function NewTokenForm() {
           creategovernanceabi,
           signer
         );
-      }
-      const accounts = await provider.listAccounts();
-      const userId = await userSideContract.userWallettoUserId(accounts[0]);
-      console.log(userId);
-
-      console.log(tokenName);
-      console.log(symbol);
-      console.log(tokenSupply);
-
-      const tx = await createTokenContract.deployToken(
-        tokenName,
-        symbol,
-        tokenSupply,
-        userId
-      );
-      await tx.wait();
-      console.log(tx);
-      const totalTokens = await createTokenContract.getTotalTokesnDeployed(
-        userId
-      );
-      const mintedTokenAddress =
-        await createTokenContract.userIdtoDeployedTokens(
-          userId,
-          totalTokens - 1
+      } else if (chainId === 80002) {
+        // Polygon Amoy Network
+        userSideContract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+          userSideabi,
+          signer
         );
+        createTokenContract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_CREATEGOVERNANCE_AMOY_ADDRESS,
+          creategovernanceabi,
+          signer
+        );
+        toast({
+          title: "Using Polygon Amoy Network",
+          description: "Your token will be minted on Polygon Amoy testnet.",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Unsupported Network",
+          description:
+            "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or Skale).",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
 
-      settokenAddress(mintedTokenAddress);
-      toast({
-        title: "Tokens Minted",
-        description: `Token Address: ${mintedTokenAddress}`,
-        status: "success",
-        duration: 10000,
-        isClosable: true,
-      });
-      setMintDone(true);
+      try {
+        const accounts = await provider.listAccounts();
+        const userId = await userSideContract.userWallettoUserId(accounts[0]);
+        console.log(userId);
+
+        console.log(tokenName);
+        console.log(symbol);
+        console.log(tokenSupply);
+
+        const tx = await createTokenContract.deployToken(
+          tokenName,
+          symbol,
+          tokenSupply,
+          userId
+        );
+        await tx.wait();
+        console.log(tx);
+        const totalTokens = await createTokenContract.getTotalTokesnDeployed(
+          userId
+        );
+        const mintedTokenAddress =
+          await createTokenContract.userIdtoDeployedTokens(
+            userId,
+            totalTokens - 1
+          );
+
+        settokenAddress(mintedTokenAddress);
+        toast({
+          title: "Tokens Minted",
+          description: `Token Address: ${mintedTokenAddress}`,
+          status: "success",
+          duration: 10000,
+          isClosable: true,
+        });
+        setMintDone(true);
+      } catch (error) {
+        console.error("Token minting error:", error);
+        toast({
+          title: "Token Minting Failed",
+          description:
+            error.message || "There was an error minting your token.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     } else {
       toast({
         title: "Connect Wallet",
@@ -353,6 +396,7 @@ export default function NewTokenForm() {
       //polygonZkEvmCardona === 2442
       // skaleCalypsoTestnet === 974399131
       //sepolia === 11155111
+      //amoy === 80002
 
       if (chainId === 545) {
         userSideContract = new ethers.Contract(
@@ -378,21 +422,35 @@ export default function NewTokenForm() {
           userSideabi,
           signer
         );
-      }
-      const accounts = await provider.listAccounts();
-      let tx;
-      if (account.chainId === 11155111) {
-        tx = await userSideContract.createDao(
-          name,
-          desc,
-          threshholdToken,
-          proposalToken,
-          tokenAddress,
-          daovisibility,
-          accounts[0]
+      } else if (chainId === 80002) {
+        // Polygon Amoy Network
+        userSideContract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+          userSideabi,
+          signer
         );
+        toast({
+          title: "Using Polygon Amoy Network",
+          description: "Your DAO will be created on Polygon Amoy testnet.",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
-        tx = await userSideContract.createDao(
+        toast({
+          title: "Unsupported Network",
+          description:
+            "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or Skale).",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      try {
+        const accounts = await provider.listAccounts();
+        let tx = await userSideContract.createDao(
           name,
           desc,
           threshholdToken,
@@ -401,19 +459,27 @@ export default function NewTokenForm() {
           daovisibility,
           accounts[0]
         );
+
+        console.log(tx);
+        await tx.wait(1);
+
+        toast({
+          title: "DAO Created",
+          description: `DAO created successfully. You can view it on explore page`,
+          status: "success",
+          duration: 10000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("DAO creation error:", error);
+        toast({
+          title: "DAO Creation Failed",
+          description: error.message || "There was an error creating your DAO.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       }
-
-      console.log(tx);
-
-      await tx.wait(1);
-
-      toast({
-        title: "DAO Created",
-        description: `DAO created successfully. You can view it on explore page`,
-        status: "success",
-        duration: 10000,
-        isClosable: true,
-      });
     } else {
       toast({
         title: "Connect Wallet",

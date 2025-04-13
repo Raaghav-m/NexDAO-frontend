@@ -135,7 +135,32 @@ const DaoCard = ({
             signer
           );
           break;
+        case 80002:
+          userSideContract = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            usersideabi,
+            signer
+          );
+          toast({
+            title: "Polygon Amoy Network",
+            description: "Joining DAO on Polygon Amoy testnet",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+          break;
+        default:
+          toast({
+            title: "Unsupported Network",
+            description:
+              "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE)",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
       }
+
       console.log(userSideContract);
       try {
         const accounts = await provider.listAccounts();
@@ -157,6 +182,7 @@ const DaoCard = ({
         toast({
           title: "Error",
           description:
+            error.message ||
             "An error occurred while joining the DAO. Please try again.",
           status: "error",
           duration: 5000,

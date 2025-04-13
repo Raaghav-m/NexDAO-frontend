@@ -30,16 +30,40 @@ import {
   sepolia,
   flowTestnet,
 } from "wagmi/chains";
+import { Chain } from "wagmi/chains";
+
+// Define Polygon Amoy testnet
+const polygonAmoy: Chain = {
+  id: 80002,
+  name: "Polygon Amoy",
+  nativeCurrency: {
+    decimals: 18,
+    name: "MATIC",
+    symbol: "MATIC",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc-amoy.polygon.technology"],
+    },
+    public: {
+      http: ["https://rpc-amoy.polygon.technology"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "PolygonScan",
+      url: "https://amoy.polygonscan.com",
+    },
+  },
+  testnet: true,
+};
 
 const config = getDefaultConfig({
   appName: "ETHSF",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-  chains: [polygonZkEvmCardona, skaleCalypsoTestnet, sepolia, flowTestnet],
+  chains: [sepolia, polygonAmoy],
   transports: {
-    [(polygonZkEvmCardona.id,
-    skaleCalypsoTestnet.id,
-    sepolia.id,
-    flowTestnet.id)]: http(),
+    [(sepolia.id, polygonAmoy.id)]: http(),
   },
 });
 const queryClient = new QueryClient();
