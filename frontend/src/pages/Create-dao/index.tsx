@@ -33,7 +33,7 @@ const CreateDao = () => {
           height="80vh"
           flexDir={{ base: "column", md: "row" }}
         >
-          <Box textDecoration="none" _hover={{ textDecoration: "none" }}>
+          {/* <Box textDecoration="none" _hover={{ textDecoration: "none" }}>
             <Image
               borderRadius="lg"
               src="/assets/tokens.webp"
@@ -42,7 +42,7 @@ const CreateDao = () => {
               width={{ base: 200, md: 275 }}
               // width={275}
             />
-          </Box>
+          </Box> */}
           <Box
             width={{ base: "100%", md: "50%" }}
             display={"flex"}
