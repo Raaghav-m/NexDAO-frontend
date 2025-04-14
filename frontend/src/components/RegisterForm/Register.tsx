@@ -35,6 +35,7 @@ const RegisterForm = () => {
   const [bio, setBio] = useState("");
   const [ipfsUrl, setIpfsUrl] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [networkName, setNetworkName] = useState("");
 
   const bgColor = useColorModeValue("white", "gray.700");
   const textColor = useColorModeValue("gray.800", "white");
@@ -43,6 +44,28 @@ const RegisterForm = () => {
     const updateChainId = async () => {
       if (account) {
         setChainId(account.chainId);
+
+        // Update network name based on chainId
+        switch (account.chainId) {
+          case 545:
+            setNetworkName("Flow Testnet");
+            break;
+          case 2442:
+            setNetworkName("Polygon ZkEVM Cardona");
+            break;
+          case 974399131:
+            setNetworkName("SKALE Calypso Testnet");
+            break;
+          case 11155111:
+            setNetworkName("Ethereum Sepolia");
+            break;
+          case 80002:
+            setNetworkName("Polygon Amoy");
+            break;
+          default:
+            setNetworkName("Unknown Network");
+        }
+
         if (account.chainId === 974399131) {
           await handlesFuelDistribution();
         }
@@ -59,29 +82,78 @@ const RegisterForm = () => {
   };
 
   const uploadFile = async (file) => {
-    const output = await lighthouse.upload(
-      file,
-      process.env.NEXT_PUBLIC_LIGHTHOUSE_API_KEY,
-      false,
-      null,
-      progressCallback
-    );
-    console.log("File Status:", output);
+    try {
+      // Check if file exists and is valid
+      if (!file || file.length === 0) {
+        toast({
+          title: "No File Selected",
+          description: "Please select an image file to upload.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+        return;
+      }
 
-    setIpfsUrl(output.data.Hash);
+      // Use the first file from the FileList
+      const singleFile = file[0] || file;
 
-    toast({
-      title: "Image Uploaded to IPFS",
-      description: "Your profile image has been successfully uploaded.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "top-right",
-    });
+      // Create a proper formData for lighthouse
+      const fileData = new FormData();
+      fileData.append("file", singleFile);
 
-    console.log(
-      "Visit at https://gateway.lighthouse.storage/ipfs/" + output.data.Hash
-    );
+      // Show uploading toast
+      toast({
+        title: "Uploading Image",
+        description: "Your profile image is being uploaded to IPFS...",
+        status: "info",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+
+      // Upload to lighthouse
+      const output = await lighthouse.upload(
+        fileData,
+        process.env.NEXT_PUBLIC_LIGHTHOUSE_API_KEY,
+        false,
+        null,
+        progressCallback
+      );
+
+      console.log("File Upload Status:", output);
+
+      if (output && output.data && output.data.Hash) {
+        setIpfsUrl(output.data.Hash);
+
+        toast({
+          title: "Image Uploaded to IPFS",
+          description: "Your profile image has been successfully uploaded.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+
+        console.log(
+          "Visit at https://gateway.lighthouse.storage/ipfs/" + output.data.Hash
+        );
+      } else {
+        throw new Error("Failed to upload image to IPFS");
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      toast({
+        title: "Upload Failed",
+        description:
+          error.message || "There was an error uploading your image.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
   };
 
   const handlesFuelDistribution = async () => {
@@ -115,104 +187,262 @@ const RegisterForm = () => {
 
   const [submitting, setSubmitting] = useState(false);
 
+  // Update the handleSubmit function to better handle RPC errors
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic form validation
+    if (!name || !email || !bio) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all required fields.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+      return;
+    }
+
     setSubmitting(true);
+
     if (account.isConnected) {
       console.log("account connected");
       console.log(`chainId is: ${chainId}`);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      let contract;
 
-      if (chainId === 545) {
-        contract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
-          usersideabi,
-          signer
-        );
-      } else if (chainId === 2442) {
-        contract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_CARDONA_ADDRESS,
-          usersideabi,
-          signer
-        );
-      } else if (chainId === 974399131) {
-        contract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_SKALE_ADDRESS,
-          usersideabi,
-          signer
-        );
-        await handlesFuelDistribution();
-      } else if (chainId === 11155111) {
-        contract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-          usersideabi,
-          signer
-        );
-      } else if (chainId === 80002) {
-        // Polygon Amoy Network
-        contract = new ethers.Contract(
-          process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
-          usersideabi,
-          signer
-        );
+      try {
+        // First check if provider is available
+        if (!window.ethereum) {
+          throw new Error("MetaMask not detected. Please install MetaMask.");
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+        // Explicitly request accounts to ensure connection
+        await provider.send("eth_requestAccounts", []);
+
+        const signer = provider.getSigner();
+        const accounts = await provider.listAccounts();
+
+        if (!accounts || accounts.length === 0) {
+          throw new Error(
+            "No accounts found. Please check your MetaMask connection."
+          );
+        }
+
+        let contract;
+
+        // Chain selection
+        switch (chainId) {
+          case 545:
+            contract = new ethers.Contract(
+              process.env.NEXT_PUBLIC_USERSIDE_FLOW_ADDRESS,
+              usersideabi,
+              signer
+            );
+            break;
+          case 2442:
+            contract = new ethers.Contract(
+              process.env.NEXT_PUBLIC_USERSIDE_CARDONA_ADDRESS,
+              usersideabi,
+              signer
+            );
+            break;
+          case 974399131:
+            contract = new ethers.Contract(
+              process.env.NEXT_PUBLIC_USERSIDE_SKALE_ADDRESS,
+              usersideabi,
+              signer
+            );
+            // Ensure we have enough fuel on SKALE
+            await handlesFuelDistribution();
+            break;
+          case 11155111:
+            contract = new ethers.Contract(
+              process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
+              usersideabi,
+              signer
+            );
+            break;
+          case 80002:
+            // Polygon Amoy Network
+            contract = new ethers.Contract(
+              process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+              usersideabi,
+              signer
+            );
+            break;
+          default:
+            throw new Error(
+              "Unsupported network. Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or Skale)."
+            );
+        }
+
+        // Display network-specific toast
         toast({
-          title: "Using Polygon Amoy Network",
-          description:
-            "Your registration will be processed on Polygon Amoy testnet.",
+          title: `Using ${networkName}`,
+          description: `Your registration will be processed on ${networkName}.`,
           status: "info",
           duration: 3000,
           isClosable: true,
           position: "top-right",
         });
-      } else {
-        toast({
-          title: "Unsupported Network",
-          description:
-            "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or Skale).",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "top-right",
-        });
-        setSubmitting(false);
-        return;
-      }
 
-      try {
-        const accounts = await provider.listAccounts();
+        // Default to empty string if ipfsUrl is not set (no image)
+        const finalIpfsUrl = ipfsUrl || "";
+
+        // Prepare transaction with more detailed gas settings
+        const gasPrice = await provider.getGasPrice();
+        const adjustedGasPrice = gasPrice.mul(120).div(100); // 20% more than current
+
         const tx = await contract.createUser(
           name,
           email,
           bio,
-          ipfsUrl,
-          accounts[0]
+          finalIpfsUrl,
+          accounts[0],
+          {
+            gasLimit: 1000000, // Higher gas limit to ensure transaction goes through
+            gasPrice: adjustedGasPrice,
+          }
         );
-        await tx.wait();
+
+        // Show pending toast
+        toast({
+          title: "Transaction Pending",
+          description: `Transaction hash: ${tx.hash.substring(0, 10)}...`,
+          status: "info",
+          duration: 10000,
+          isClosable: true,
+          position: "top-right",
+        });
+
+        // Wait for confirmation with a timeout
+        const receipt = await Promise.race([
+          tx.wait(1),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Transaction confirmation timeout")),
+              60000
+            )
+          ),
+        ]);
 
         toast({
           title: "Registration Successful",
-          description: "Welcome to our DAO platform!",
+          description: `Welcome to our DAO platform on ${networkName}!`,
           status: "success",
           duration: 5000,
           isClosable: true,
           position: "top-right",
         });
+
+        // Reset form
+        setName("");
+        setEmail("");
+        setBio("");
+        setIpfsUrl("");
+        setProfileImage("");
+
+        // Reset file input
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
       } catch (error) {
         console.error("Registration error:", error);
-        toast({
-          title: "Registration Failed",
-          description:
-            error.message || "There was an error processing your registration.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top-right",
-        });
+
+        // Handle specific error cases with better user feedback
+        if (error.message.includes("user already exists")) {
+          toast({
+            title: "User Already Registered",
+            description:
+              "This wallet address is already registered on this network.",
+            status: "warning",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        } else if (error.message.includes("Internal JSON-RPC error")) {
+          // Extract the specific error message from the RPC error if possible
+          let detailedMessage = "There was an RPC error with MetaMask.";
+
+          try {
+            // Try to extract the detailed error message
+            const jsonStart = error.message.indexOf("{");
+            if (jsonStart > -1) {
+              const errorJson = JSON.parse(error.message.slice(jsonStart));
+              if (errorJson.message) {
+                detailedMessage = errorJson.message;
+              }
+            }
+          } catch (parseError) {
+            console.error("Error parsing RPC error:", parseError);
+          }
+
+          toast({
+            title: "Transaction Failed",
+            description: `MetaMask RPC Error: ${detailedMessage}. Try refreshing the page or reconnecting your wallet.`,
+            status: "error",
+            duration: 8000,
+            isClosable: true,
+            position: "top-right",
+          });
+        } else if (error.message.includes("insufficient funds")) {
+          toast({
+            title: "Insufficient Funds",
+            description: `You don't have enough funds on ${networkName} to complete this transaction.`,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        } else if (error.message.includes("user rejected transaction")) {
+          toast({
+            title: "Transaction Rejected",
+            description: "You rejected the transaction in your wallet.",
+            status: "info",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        } else if (error.message.includes("timeout")) {
+          toast({
+            title: "Transaction Timeout",
+            description:
+              "The transaction is taking longer than expected. Check your wallet for status.",
+            status: "warning",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        } else {
+          toast({
+            title: "Registration Failed",
+            description:
+              error.message ||
+              "There was an error processing your registration.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        }
       }
     } else {
-      console.log("no account connected");
       toast({
         title: "No Account Connected",
         description: "Please connect your wallet to register.",
@@ -222,6 +452,7 @@ const RegisterForm = () => {
         position: "top-right",
       });
     }
+
     setSubmitting(false);
   };
 
@@ -241,6 +472,32 @@ const RegisterForm = () => {
           <Text textAlign="center" fontSize="lg">
             Register now to participate in governance and decision-making!
           </Text>
+
+          {/* Network Display */}
+          {account.isConnected && (
+            <Box
+              p={2}
+              bg={
+                chainId === 80002
+                  ? "purple.100"
+                  : chainId === 11155111
+                  ? "blue.100"
+                  : "gray.100"
+              }
+              color={
+                chainId === 80002
+                  ? "purple.800"
+                  : chainId === 11155111
+                  ? "blue.800"
+                  : "gray.800"
+              }
+              borderRadius="md"
+              width="100%"
+              textAlign="center"
+            >
+              <Text fontWeight="medium">Network: {networkName}</Text>
+            </Box>
+          )}
 
           <FormControl isRequired>
             <FormLabel>Username</FormLabel>
@@ -285,13 +542,29 @@ const RegisterForm = () => {
               <InputLeftElement pointerEvents="none">
                 <Icon as={FaFileImage} color="gray.300" />
               </InputLeftElement>
-              <Input 
+              <Input
                 type="file"
-                onChange={(e) => uploadFile(e.target.files)}
+                ref={inputRef}
+                onChange={(e) => setProfileImage(e.target.files)}
                 accept="image/*"
                 p={1}
               />
             </InputGroup>
+            <Button
+              mt={2}
+              size="sm"
+              colorScheme="teal"
+              onClick={() => profileImage && uploadFile(profileImage)}
+              isDisabled={!profileImage}
+            >
+              Upload Image
+            </Button>
+            {ipfsUrl && (
+              <Text mt={2} fontSize="sm" color="green.500">
+                Image uploaded successfully! IPFS hash:{" "}
+                {ipfsUrl.substring(0, 10)}...
+              </Text>
+            )}
           </FormControl>
 
           <Button

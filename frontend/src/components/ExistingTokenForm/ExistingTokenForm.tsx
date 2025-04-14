@@ -206,6 +206,7 @@ const Form3 = ({ getTokenAddress }) => {
     getTokenAddress(address);
   };
 
+  // Update the fetchTokenDetails function to support Amoy
   const fetchTokenDetails = async (address) => {
     try {
       console.log("fetching token details for address:", address);
@@ -214,6 +215,7 @@ const Form3 = ({ getTokenAddress }) => {
       //polygonZkEvmCardona === 2442
       // skaleCalypsoTestnet === 974399131
       //sepolia === 11155111
+      //amoy === 80002
       if (chainId === 545) {
         provider = new ethers.providers.JsonRpcProvider(
           process.env.NEXT_PUBLIC_RPC_URL_FLOW
@@ -230,7 +232,12 @@ const Form3 = ({ getTokenAddress }) => {
         provider = new ethers.providers.JsonRpcProvider(
           process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA
         );
+      } else if (chainId === 80002) {
+        provider = new ethers.providers.JsonRpcProvider(
+          process.env.NEXT_PUBLIC_RPC_URL_AMOY
+        );
       }
+
       // Use your Ethereum provider
       const contract = new ethers.Contract(
         address,
@@ -338,7 +345,6 @@ export default function ExistingTokenForm() {
 
   const createDAO = async () => {
     // repeat similar logic as mintToken
-
     if (account.isConnected) {
       console.log("account connected");
       console.log(`chainId is: ${chainId}`);
@@ -349,6 +355,7 @@ export default function ExistingTokenForm() {
       //polygonZkEvmCardona === 2442
       // skaleCalypsoTestnet === 974399131
       //sepolia === 11155111
+      //amoy === 80002
 
       if (chainId === 545) {
         userSideContract = new ethers.Contract(
@@ -377,53 +384,96 @@ export default function ExistingTokenForm() {
           userside2abi,
           signer
         );
-      }
-      const accounts = await provider.listAccounts();
-      let tx;
-      if (chainId === 11155111) {
-        tx = await userSideContract.createDao(
-          name,
-          desc,
-          threshholdToken,
-          proposalToken,
-          tokenAddress,
-          daovisibility,
-          accounts[0],
-          {
-            gasLimit: 1000000,
-          }
+        toast({
+          title: "Using Sepolia Network",
+          description: "Creating DAO on Ethereum Sepolia testnet.",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else if (chainId === 80002) {
+        // Polygon Amoy Network
+        userSideContract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+          usersideabi,
+          signer
         );
-        await tx.wait(1);
+        toast({
+          title: "Using Polygon Amoy Network",
+          description: "Creating DAO on Polygon Amoy testnet.",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
-        tx = await userSideContract.createDao(
-          name,
-          desc,
-          threshholdToken,
-          proposalToken,
-          tokenAddress,
-          daovisibility,
-          accounts[0],
-          {
-            gasLimit: 1000000,
-          }
-        );
+        toast({
+          title: "Unsupported Network",
+          description:
+            "Please switch to a supported network (Sepolia, Amoy, Flow, Cardona, or SKALE).",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
       }
 
-      console.log(tx);
+      try {
+        const accounts = await provider.listAccounts();
+        let tx;
 
-      await tx.wait(1);
+        if (chainId === 11155111) {
+          tx = await userSideContract.createDao(
+            name,
+            desc,
+            threshholdToken,
+            proposalToken,
+            tokenAddress,
+            daovisibility,
+            accounts[0],
+            {
+              gasLimit: 1000000,
+            }
+          );
+        } else {
+          tx = await userSideContract.createDao(
+            name,
+            desc,
+            threshholdToken,
+            proposalToken,
+            tokenAddress,
+            daovisibility,
+            accounts[0],
+            {
+              gasLimit: 1000000,
+            }
+          );
+        }
 
-      toast({
-        title: "DAO Created",
-        description: `DAO created successfully. You can view it on explore page`,
-        status: "success",
-        duration: 10000,
-        isClosable: true,
-      });
+        console.log("Transaction sent:", tx.hash);
+        await tx.wait(1);
+
+        toast({
+          title: "DAO Created",
+          description:
+            "DAO created successfully. You can view it on explore page",
+          status: "success",
+          duration: 10000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("DAO creation error:", error);
+        toast({
+          title: "DAO Creation Failed",
+          description: error.message || "There was an error creating your DAO.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     } else {
       toast({
         title: "Connect Wallet",
-        description: "Please connect your wallet to mint tokens",
+        description: "Please connect your wallet to create a DAO",
         status: "error",
         duration: 10000,
         isClosable: true,
@@ -433,34 +483,77 @@ export default function ExistingTokenForm() {
 
   const deployCrossChain = async () => {
     if (account.isConnected) {
-      console.log("account connected");
+      console.log("account connected for cross-chain deployment");
       console.log(`chainId is: ${chainId}`);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      let managerContractInstance = new ethers.Contract(
-        process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
-        userside2abi,
-        signer
-      );
-      const accounts = await provider.listAccounts();
-      const tx = await managerContractInstance.bridgeDaoMessage(1, true);
-      await tx.wait(1);
-      toast({
-        title: "Cross-chain Deployed",
-        description: `Hold Tight! We are verifying merkle proof.`,
-        status: "success",
-        duration: 10000,
-        isClosable: true,
-      });
+      let managerContractInstance;
 
-      // flow === 545
-      //polygonZkEvmCardona === 2442
-      // skaleCalypsoTestnet === 974399131
-      //sepolia === 11155111
+      try {
+        if (chainId === 11155111) {
+          managerContractInstance = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_SEPOLIA_ADDRESS,
+            userside2abi,
+            signer
+          );
+          toast({
+            title: "Cross-chain from Sepolia",
+            description: "Deploying cross-chain from Ethereum Sepolia",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else if (chainId === 80002) {
+          managerContractInstance = new ethers.Contract(
+            process.env.NEXT_PUBLIC_USERSIDE_AMOY_ADDRESS,
+            userside2abi,
+            signer
+          );
+          toast({
+            title: "Cross-chain from Amoy",
+            description: "Deploying cross-chain from Polygon Amoy",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          toast({
+            title: "Unsupported Network for Cross-chain",
+            description:
+              "Cross-chain deployment is only supported on Sepolia and Amoy networks",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
+
+        const tx = await managerContractInstance.bridgeDaoMessage(1, true);
+        console.log("Cross-chain transaction sent:", tx.hash);
+        await tx.wait(1);
+
+        toast({
+          title: "Cross-chain Deployed",
+          description: "Hold Tight! We are verifying merkle proof.",
+          status: "success",
+          duration: 10000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("Cross-chain deployment error:", error);
+        toast({
+          title: "Cross-chain Deployment Failed",
+          description:
+            error.message || "There was an error in cross-chain deployment.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     } else {
       toast({
         title: "Connect Wallet",
-        description: "Please connect your wallet to mint tokens",
+        description: "Please connect your wallet to deploy cross-chain",
         status: "error",
         duration: 10000,
         isClosable: true,
@@ -541,7 +634,8 @@ export default function ExistingTokenForm() {
               >
                 Submit
               </Button>
-              {chainId === 11155111 ? (
+              {/* Show cross-chain button for both Sepolia and Amoy */}
+              {chainId === 11155111 || chainId === 80002 ? (
                 <Button
                   onClick={() => {
                     deployCrossChain();
